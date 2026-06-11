@@ -3,22 +3,16 @@ version: '3.8'
 services:
   # --- SERVICIO DEL BACKEND ---
   backend:
-    build: ./backend         # Le dice a Docker dónde buscar el Dockerfile del servidor
+    build: ./backend
     ports:
-      - "3000:3000"          # Mapea el puerto 3000 de tu PC al puerto 3000 del contenedor
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules # Evita que se sobrescriban los node_modules locales
+      - "3000:3000"
     environment:
-      - PORT=3000            # Variable de entorno para el puerto del servidor
+      - PORT=3000
 
-  # --- SERVICIO DEL FRONTEND (REACT) ---
+  # --- SERVICIO DEL FRONTEND ---
   frontend:
-    build: ./frontend        # Le dice a Docker dónde buscar el Dockerfile de React
+    build: ./frontend
     ports:
-      - "5173:5173"          # Mapea el puerto por defecto de Vite (5173)
-    volumes:
-      - ./frontend:/usr/src/app
-      - /usr/src/app/node_modules
+      - "5173:5173"
     depends_on:
-      - backend              # Hace que el frontend espere a que el backend arranque primero
+      - backend

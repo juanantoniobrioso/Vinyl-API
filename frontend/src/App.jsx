@@ -1,122 +1,103 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect } from 'react';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [vinilos, setVinilos] = useState([]);
+  const [generoSeleccionado, setGeneroSeleccionado] = useState('');
+  const [error, setError] = useState(null);
+  const [cargando, setCargando] = useState(true);
+
+  const generos = ['Rock', 'Soul', 'R&B', 'Blues', 'Jazz', 'Country'];
+
+  useEffect(() => {
+    const obtenerVinilos = async () => {
+      setCargando(true);
+      setError(null);
+      
+      let url = 'http://localhost:3000/api/vinilos';
+      if (generoSeleccionado) {
+        url += `?genero=${encodeURIComponent(generoSeleccionado)}`;
+      }
+
+      try {
+        const respuesta = await fetch(url);
+        if (!respuesta.ok) {
+          throw new Error(`Error en la petición: ${respuesta.status}`);
+        }
+      
+        const datos = await respuesta.json();
+      
+        setVinilos(datos); 
+
+      } catch (err) {
+        console.error("Error al capturar los vinilos:", err);
+        setError("No se pudo conectar con el catálogo de vinilos. Por favor, verifica que el servidor backend esté encendido.");
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    obtenerVinilos();
+  }, [generoSeleccionado]);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+    <div className="app-container">
+      <header className="app-header">
+        <h1>Tienda de Vinilos Clásicos</h1>
+        <p>Catálogo exclusivo para coleccionistas de buena música.</p>
+      </header>
+
+      {/* SECTOR DE GÉNEROS */}
+      <section className="filter-section">
+        <label htmlFor="genero-select">Filtrar por género musical:</label>
+        <select 
+          id="genero-select"
+          value={generoSeleccionado} 
+          onChange={(e) => setGeneroSeleccionado(e.target.value)}
         >
-          Count is {count}
-        </button>
+          <option value="">Todos los géneros</option>
+          {generos.map((g) => (
+            <option key={g} value={g}>{g}</option>
+          ))}
+        </select>
       </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {/* CONTROL DE ESTADOS */}
+      {cargando && <p className="status-message">Cargando catálogo de vinilos...</p>}
+      
+      {error && (
+        <div className="error-container">
+          <strong>¡Vaya!:</strong> {error}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* ÁREA PRINCIPAL: TARJETAS CON CLASES CSS */}
+      {!cargando && !error && (
+        <main className="vinyl-grid">
+          {vinilos.length === 0 ? (
+            <p className="status-message">No se encontraron vinilos para este género.</p>
+          ) : (
+            vinilos.map((vinilo) => (
+              <div key={vinilo.id} className="vinyl-card">
+                <img 
+                  src={vinilo.portada_url} 
+                  alt={`Portada de ${vinilo.titulo}`} 
+                  className="vinyl-cover"
+                />
+                <div className="vinyl-info">
+                  <h3 className="vinyl-title">{vinilo.titulo}</h3>
+                  <p className="vinyl-artist">{vinilo.artista}</p>
+                  <div className="vinyl-meta">
+                    <span className="badge-genre">{vinilo.genero}</span>
+                    <span className="vinyl-year">{vinilo.anio}</span>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </main>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;

@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 # Copia los archivos de definición de dependencias
 COPY package*.json ./
 
-# Instala las dependencias del proyecto
+# Instala las dependencias del proyecto de forma limpia
 RUN npm install
 
 # Copia el resto del código del backend
@@ -16,5 +16,5 @@ COPY . .
 # Expone el puerto en el que corre el servidor Express
 EXPOSE 3000
 
-# Comando para arrancar la app en modo desarrollo (usando nodemon)
+# Comando para arrancar la app
 CMD ["npm", "run", "dev"]
